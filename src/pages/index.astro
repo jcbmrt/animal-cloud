@@ -1,0 +1,83 @@
+---
+import Layout from '../layouts/Layout.astro';
+
+const page = Number(Astro.url.searchParams.get("page") || "1");
+const params = new URLSearchParams();
+const sex = Astro.url.searchParams.get("sex") || "";
+const status = Astro.url.searchParams.get("status") || "";
+const age_bucket = Astro.url.searchParams.get("age_bucket") || "";
+const found_place = Astro.url.searchParams.get("found_place") || "";
+const breed = Astro.url.searchParams.get("breed") || "";
+const shelter_name = Astro.url.searchParams.get("shelter_name") || "";
+if (sex) params.set("sex", sex);
+if (status) params.set("status", status);
+if (age_bucket) params.set("age_bucket", age_bucket);
+if (found_place) params.set("found_place", found_place);
+if (breed) params.set("breed", breed);
+if (shelter_name) params.set("shelter_name", shelter_name);
+params.set("page", String(page));
+params.set("pageSize", "24");
+const res = await fetch(`/animals/api/animals?${params.toString()}`, { cache: "no-store" });
+const data = await res.json();
+const items = data.items || [];
+const total = Number(data.total || 0);
+const totalPages = Math.max(1, Math.ceil(total / 24));
+---
+
+<Layout>
+  <main style="max-width:72rem;margin:0 auto;padding:1rem">
+    <h1 style="font-size:1.875rem;font-weight:600">Animals</h1>
+
+    <form style="display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0">
+      <input type="hidden" name="page" value="1" />
+      <select name="sex" value={sex}>
+        <option value="">Any sex</option>
+        <option value="Male">Male</option>
+        <option value="Female">Female</option>
+        <option value="Unknown">Unknown</option>
+      </select>
+      <select name="age_bucket" value={age_bucket}>
+        <option value="">All ages</option>
+        <option value="Puppy">Puppy</option>
+        <option value="Adult">Adult</option>
+        <option value="Senior">Senior</option>
+        <option value="Unknown">Unknown</option>
+      </select>
+      <select name="status" value={status}>
+        <option value="">Any status</option>
+        <option value="Available">Available</option>
+        <option value="Adopted">Adopted</option>
+        <option value="보호중">보호중</option>
+      </select>
+      <input name="breed" placeholder="Breed" value={breed} />
+      <input name="found_place" placeholder="Found place" value={found_place} />
+      <input name="shelter_name" placeholder="Shelter name" value={shelter_name} />
+      <button>Filter</button>
+    </form>
+
+    <ul style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1rem">
+      {items.map((i:any) => (
+        <li style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff">
+          <a href={`/animals/${i.slug}`} style="display:block;text-decoration:none;color:inherit">
+            <img src={i.photo_url || ""} alt={i.name || i.breed || i.slug} style="width:100%;height:12rem;object-fit:cover" />
+            <div style="padding:.75rem">
+              <div style="font-weight:600">{i.name || i.breed || i.slug}</div>
+              <div style="opacity:.8;font-size:.875rem">{i.found_place || ""}</div>
+              <div style="opacity:.8;font-size:.875rem">{i.age_bucket || i.age_text || ""} {i.sex ? `• ${i.sex}` : ""}</div>
+              <div style="margin-top:.25rem;font-size:.75rem;opacity:.9">{i.status || ""}</div>
+              <div style="margin-top:.25rem;font-size:.75rem;opacity:.8">{i.shelter_name || ""}</div>
+            </div>
+          </a>
+        </li>
+      ))}
+    </ul>
+
+    <nav style="display:flex;justify-content:center;gap:.5rem;margin:1rem 0">
+      <a style="padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:inherit"
+         href={`?${new URLSearchParams({ ...(Object.fromEntries(params)), page: String(Math.max(1, page - 1)) })}`}>Prev</a>
+      <span style="padding:.5rem .75rem;border-radius:8px">{page} / {totalPages}</span>
+      <a style="padding:.5rem .75rem;border:1px solid #e5e7eb;border-radius:8px;text-decoration:none;color:inherit"
+         href={`?${new URLSearchParams({ ...(Object.fromEntries(params)), page: String(Math.min(totalPages, page + 1)) })}`}>Next</a>
+    </nav>
+  </main>
+</Layout>
