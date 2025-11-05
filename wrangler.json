@@ -4,17 +4,16 @@
   "main": "./dist/_worker.js/index.js",
   "compatibility_date": "2025-04-15",
   "compatibility_flags": ["nodejs_compat"],
-  "assets": {
-    "binding": "ASSETS",
-    "directory": "./dist"
-  },
-  "observability": {
-    "enabled": true
-  },
+  "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "observability": { "enabled": true },
   "r2_buckets": [
+    { "binding": "CLOUD_FILES", "bucket_name": "cloud-files" }
+  ],
+  "d1_databases": [
     {
-      "binding": "CLOUD_FILES",
-      "bucket_name": "cloud-files"
+      "binding": "DB",
+      "database_name": "animals_db",
+      "migrations_dir": "./migrations"
     }
   ]
 }
