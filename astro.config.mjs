@@ -5,27 +5,16 @@ import react from "@astrojs/react";
 
 export default defineConfig({
   base: "/animals",
-  build: {
-    assetsPrefix: "/animals",
-  },
-  security: {
-    checkOrigin: false,
-  },
+  build: { assetsPrefix: "/animals" },
+  trailingSlash: "never",
+  security: { checkOrigin: false },
   output: "server",
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
-  }),
+  adapter: cloudflare({ platformProxy: { enabled: true } }),
   integrations: [react()],
   vite: {
     plugins: [tailwindcss()],
     resolve: {
-      alias: import.meta.env.PROD
-        ? {
-            "react-dom/server": "react-dom/server.edge",
-          }
-        : undefined,
+      alias: import.meta.env.PROD ? { "react-dom/server": "react-dom/server.edge" } : undefined,
     },
   },
 });
