@@ -37,6 +37,9 @@ const rows = await db.prepare(
 const c = await db.prepare(`SELECT COUNT(*) as c FROM animals ${where}`).bind(...binds).all();
 const total = Number((c.results as any[])?.[0]?.c || 0);
 
+const items = rows.results || [];
+const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
 const params = new URLSearchParams();
 if (sex) params.set('sex', sex);
 if (status) params.set('status', status);
@@ -45,9 +48,6 @@ if (found_place) params.set('found_place', found_place);
 if (breed) params.set('breed', breed);
 if (shelter_name) params.set('shelter_name', shelter_name);
 params.set('pageSize', String(pageSize));
-
-const items = rows.results || [];
-const totalPages = Math.max(1, Math.ceil(total / pageSize));
 ---
 
 <Layout>
