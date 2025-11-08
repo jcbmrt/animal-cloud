@@ -1,56 +1,68 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import type { D1Database } from '@cloudflare/workers-types';
+
+const env = (Astro as any).locals?.runtime?.env;
+const db = env.DB as D1Database;
 
 const slug = Astro.params.slug as string;
-const apiUrl = `${Astro.url.origin}/animals/api/animals/${slug}`;
-const res = await fetch(apiUrl, { cache: "no-store" });
-if (!res.ok) {
-  return Astro.redirect("/animals");
+
+const row = await db.prepare(
+  `SELECT external_id, slug, name, species, breed, sex, color, neutered, age_text, age_bucket, weight_kg,
+          feature_rescue, feature_social, feature_health, medical_check, vaccination_status,
+          found_place, received_at, remarks, jurisdiction, status, shelter_name, shelter_place,
+          shelter_phone, adoption_process, adoption_support, volunteer_info, events_info,
+          photo_url
+   FROM animals WHERE slug = ? LIMIT 1`
+).bind(slug).all();
+
+const item = (row.results as any[])?.[0] || null;
+if (!item) {
+  return Astro.redirect('/animals');
 }
-const item = await res.json();
 ---
 
 <Layout>
   <main style="max-width:60rem;margin:0 auto;padding:1rem">
     <h1 style="font-size:1.875rem;font-weight:600">{item.name || item.breed || item.slug}</h1>
-    <img src={item.photo_url || ""} alt={item.name || item.breed || item.slug} style="width:100%;height:auto;border-radius:12px" />
+    <img src={item.photo_url || ''} alt={item.name || item.breed || item.slug} style="width:100%;height:auto;border-radius:12px" />
     <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-top:1rem">
-      <div><strong>Breed</strong><div>{item.breed || ""}</div></div>
-      <div><strong>Sex</strong><div>{item.sex || ""}</div></div>
-      <div><strong>Age</strong><div>{item.age_text || item.age_bucket || ""}</div></div>
-      <div><strong>Color</strong><div>{item.color || ""}</div></div>
-      <div><strong>Neutered</strong><div>{item.neutered || ""}</div></div>
-      <div><strong>Weight</strong><div>{item.weight_kg ?? ""}</div></div>
-      <div><strong>Status</strong><div>{item.status || ""}</div></div>
-      <div><strong>Found place</strong><div>{item.found_place || ""}</div></div>
-      <div><strong>Received at</strong><div>{item.received_at || ""}</div></div>
-      <div><strong>Shelter</strong><div>{item.shelter_name || ""}</div></div>
-      <div><strong>Shelter place</strong><div>{item.shelter_place || ""}</div></div>
-      <div><strong>Shelter phone</strong><div>{item.shelter_phone || ""}</div></div>
-      <div><strong>Notice no</strong><div>{item.notice_no || ""}</div></div>
-      <div><strong>Reg no</strong><div>{item.reg_no || ""}</div></div>
+      <div><strong>Breed</strong><div>{item.breed || ''}</div></div>
+      <div><strong>Sex</strong><div>{item.sex || ''}</div></div>
+      <div><strong>Age</strong><div>{item.age_text || item.age_bucket || ''}</div></div>
+      <div><strong>Color</strong><div>{item.color || ''}</div></div>
+      <div><strong>Neutered</strong><div>{item.neutered || ''}</div></div>
+      <div><strong>Weight</strong><div>{item.weight_kg ?? ''}</div></div>
+      <div><strong>Status</strong><div>{item.status || ''}</div></div>
+      <div><strong>Found place</strong><div>{item.found_place || ''}</div></div>
+      <div><strong>Received at</strong><div>{item.received_at || ''}</div></div>
+      <div><strong>Shelter</strong><div>{item.shelter_name || ''}</div></div>
+      <div><strong>Shelter place</strong><div>{item.shelter_place || ''}</div></div>
+      <div><strong>Shelter phone</strong><div>{item.shelter_phone || ''}</div></div>
+      <div><strong>Notice no</strong><div>{item.notice_no || ''}</div></div>
+      <div><strong>Reg no</strong><div>{item.reg_no || ''}</div></div>
     </div>
 
     <section style="margin-top:1rem">
       <h2 style="font-size:1.25rem;font-weight:600">Notes</h2>
-      <p>{item.feature_rescue || ""}</p>
-      <p>{item.feature_social || ""}</p>
-      <p>{item.feature_health || ""}</p>
-      <p>{item.remarks || ""}</p>
+      <p>{item.feature_rescue || ''}</p>
+      <p>{item.feature_social || ''}</p>
+      <p>{item.feature_health || ''}</p>
+      <p>{item.remarks || ''}</p>
     </section>
 
     <section style="margin-top:1rem">
       <h2 style="font-size:1.25rem;font-weight:600">Medical</h2>
-      <p>Medical check: {item.medical_check || ""}</p>
-      <p>Vaccination: {item.vaccination_status || ""}</p>
+      <p>Medical check: {item.medical_check || ''}</p>
+      <p>Vaccination: {item.vaccination_status || ''}</p>
     </section>
 
     <section style="margin-top:1rem">
       <h2 style="font-size:1.25rem;font-weight:600">Adoption and volunteering</h2>
-      <p>Adoption process: {item.adoption_process || ""}</p>
-      <p>Adoption support: {item.adoption_support || ""}</p>
-      <p>Volunteer info: {item.volunteer_info || ""}</p>
-      <p>Events: {item.events_info || ""}</p>
+      <p>Adoption process: {item.adoption_process || ''}</p>
+      <p>Adoption support: {item.adoption_support || ''}</p>
+      <p>Volunteer info: {item.volunteer_info || ''}</p>
+      <p>Events: {item.events_info || ''}</p>
     </section>
   </main>
 </Layout>
