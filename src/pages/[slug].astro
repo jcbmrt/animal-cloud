@@ -2,7 +2,8 @@
 import Layout from '../layouts/Layout.astro';
 
 const slug = Astro.params.slug as string;
-const res = await fetch(`/animals/api/animals/${slug}`, { cache: "no-store" });
+const apiUrl = `${Astro.url.origin}/animals/api/animals/${slug}`;
+const res = await fetch(apiUrl, { cache: "no-store" });
 if (!res.ok) {
   return Astro.redirect("/animals");
 }
