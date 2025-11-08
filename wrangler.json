@@ -13,6 +13,7 @@
   {
     "binding": "DB",
     "database_name": "animals_db_main",
+    "database_id": "123456789",
     "migrations_dir": "./migrations"
   }
 ]
