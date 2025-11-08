@@ -1,28 +1,53 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import type { D1Database } from '@cloudflare/workers-types';
 
-const page = Number(Astro.url.searchParams.get("page") || "1");
+const env = (Astro as any).locals?.runtime?.env;
+const db = env.DB as D1Database;
+
+const page = Math.max(1, Number(Astro.url.searchParams.get('page') || '1'));
+const pageSize = 24;
+
+const sex = Astro.url.searchParams.get('sex') || '';
+const status = Astro.url.searchParams.get('status') || '';
+const age_bucket = Astro.url.searchParams.get('age_bucket') || '';
+const found_place = Astro.url.searchParams.get('found_place') || '';
+const breed = Astro.url.searchParams.get('breed') || '';
+const shelter_name = Astro.url.searchParams.get('shelter_name') || '';
+
+const clauses: string[] = [];
+const binds: any[] = [];
+if (sex) { clauses.push('sex = ?'); binds.push(sex); }
+if (status) { clauses.push('status = ?'); binds.push(status); }
+if (age_bucket) { clauses.push('age_bucket = ?'); binds.push(age_bucket); }
+if (found_place) { clauses.push('found_place = ?'); binds.push(found_place); }
+if (breed) { clauses.push('breed = ?'); binds.push(breed); }
+if (shelter_name) { clauses.push('shelter_name = ?'); binds.push(shelter_name); }
+const where = clauses.length ? `WHERE ${clauses.join(' AND ')}` : '';
+
+const offset = (page - 1) * pageSize;
+
+const rows = await db.prepare(
+  `SELECT external_id, slug, name, breed, sex, age_text, age_bucket, found_place, status, shelter_name, photo_url
+   FROM animals ${where}
+   ORDER BY COALESCE(received_at, posted_at) DESC
+   LIMIT ? OFFSET ?`
+).bind(...binds, pageSize, offset).all();
+
+const c = await db.prepare(`SELECT COUNT(*) as c FROM animals ${where}`).bind(...binds).all();
+const total = Number((c.results as any[])?.[0]?.c || 0);
+
 const params = new URLSearchParams();
-const sex = Astro.url.searchParams.get("sex") || "";
-const status = Astro.url.searchParams.get("status") || "";
-const age_bucket = Astro.url.searchParams.get("age_bucket") || "";
-const found_place = Astro.url.searchParams.get("found_place") || "";
-const breed = Astro.url.searchParams.get("breed") || "";
-const shelter_name = Astro.url.searchParams.get("shelter_name") || "";
-if (sex) params.set("sex", sex);
-if (status) params.set("status", status);
-if (age_bucket) params.set("age_bucket", age_bucket);
-if (found_place) params.set("found_place", found_place);
-if (breed) params.set("breed", breed);
-if (shelter_name) params.set("shelter_name", shelter_name);
-params.set("page", String(page));
-params.set("pageSize", "24");
-const apiBase = `${Astro.url.origin}/animals/api/animals`;
-const res = await fetch(`${apiBase}?${params.toString()}`, { cache: "no-store" });
-const data = await res.json();
-const items = data.items || [];
-const total = Number(data.total || 0);
-const totalPages = Math.max(1, Math.ceil(total / 24));
+if (sex) params.set('sex', sex);
+if (status) params.set('status', status);
+if (age_bucket) params.set('age_bucket', age_bucket);
+if (found_place) params.set('found_place', found_place);
+if (breed) params.set('breed', breed);
+if (shelter_name) params.set('shelter_name', shelter_name);
+params.set('pageSize', String(pageSize));
+
+const items = rows.results || [];
+const totalPages = Math.max(1, Math.ceil(total / pageSize));
 ---
 
 <Layout>
@@ -60,13 +85,13 @@ const totalPages = Math.max(1, Math.ceil(total / 24));
       {items.map((i:any) => (
         <li style="border:1px solid #e5e7eb;border-radius:12px;overflow:hidden;background:#fff">
           <a href={`/animals/${i.slug}`} style="display:block;text-decoration:none;color:inherit">
-            <img src={i.photo_url || ""} alt={i.name || i.breed || i.slug} style="width:100%;height:12rem;object-fit:cover" />
+            <img src={i.photo_url || ''} alt={i.name || i.breed || i.slug} style="width:100%;height:12rem;object-fit:cover" />
             <div style="padding:.75rem">
               <div style="font-weight:600">{i.name || i.breed || i.slug}</div>
-              <div style="opacity:.8;font-size:.875rem">{i.found_place || ""}</div>
-              <div style="opacity:.8;font-size:.875rem">{i.age_bucket || i.age_text || ""} {i.sex ? `• ${i.sex}` : ""}</div>
-              <div style="margin-top:.25rem;font-size:.75rem;opacity:.9">{i.status || ""}</div>
-              <div style="margin-top:.25rem;font-size:.75rem;opacity:.8">{i.shelter_name || ""}</div>
+              <div style="opacity:.8;font-size:.875rem">{i.found_place || ''}</div>
+              <div style="opacity:.8;font-size:.875rem">{i.age_bucket || i.age_text || ''} {i.sex ? `• ${i.sex}` : ''}</div>
+              <div style="margin-top:.25rem;font-size:.75rem;opacity:.9">{i.status || ''}</div>
+              <div style="margin-top:.25rem;font-size:.75rem;opacity:.8">{i.shelter_name || ''}</div>
             </div>
           </a>
         </li>
