@@ -1,0 +1,1 @@
+003_force_detect.sql
