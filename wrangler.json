@@ -10,10 +10,10 @@
     { "binding": "CLOUD_FILES", "bucket_name": "cloud-files" }
   ],
   "d1_databases": [
-  {
-    "binding": "DB",
-    "database_name": "animals_db_main",
-    "migrations_dir": "./migrations"
-  }
+    {
+      "binding": "DB",
+      "database_name": "animals_db",
+      "migrations_dir": "./migrations"
+    }
   ]
 }
