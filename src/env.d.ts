@@ -1,6 +1,7 @@
-/* eslint-disable @typescript-eslint/no-empty-interface */
-type Runtime = import("@astrojs/cloudflare").Runtime<Env>;
+/// <reference path="../worker-configuration.d.ts" />
 
 declare namespace App {
-  interface Locals extends Runtime {}
+  interface Locals {
+    runtime: { env: Env };
+  }
 }
